@@ -1,11 +1,3 @@
-# Gromgit Brewplus
+# Brew+ - stuff to enhance Homebrew
 
-## How do I install these formulae?
-
-`brew install gromgit/brewplus/<formula>`
-
-Or `brew tap gromgit/brewplus` and then `brew install <formula>`.
-
-## Documentation
-
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
+Various scripts I'm using to build Homebrew repos for architectures not officially supported.
