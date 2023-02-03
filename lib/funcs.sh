@@ -205,6 +205,19 @@ my_os=$(os_name)
 my_os_sha256=$(os_name | shasum -a 256 | awk '{print $1}')
 my_ver=$(os_ver "$my_os")
 my_xcode_ver=$(max_xcode_ver "$my_os")
+if [[ -z $HOMEBREW_LOGS ]]; then
+  case "$(uname -s)" in
+    Darwin) dir=$HOME/Library/Logs/Homebrew;;
+    Linux) for dir in $XDG_CACHE_HOME/Homebrew/Logs $HOME/.cache/Homebrew/Logs; do [[ -d $dir ]] && break; done;;
+    *) fatal "Unable to support '$os'";;
+  esac
+  if [[ -d $dir ]]; then
+    export HOMEBREW_LOGS=$dir
+  else
+    fatal "Log directory '$dir' not found"
+  fi
+fi
+unset dir
 
 # Memoization for can_build()
 declare -A b_cache=()
