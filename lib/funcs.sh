@@ -391,11 +391,19 @@ git_in() {
   popd >/dev/null || fatal "Can't popd"
 }
 
-# faketty: Run command with fake tty
-# USAGE: faketty <cmd> ...
+# faketty: Run command with fake tty (optional logging)
+# USAGE: faketty [-f <log_file>] <cmd> ...
 faketty () {
   # Create a temporary file for storing the status code
-  local tmp cmd err
+  local logfile=/dev/null tmp cmd err
+  while true; do
+    case "$1" in
+      -f) logfile=$2; shift;;
+      *) break;;
+    esac
+    shift
+  done
+
   tmp=$(mktemp)
 
   # Ensure it worked or fail with status 99
@@ -408,9 +416,9 @@ faketty () {
   # Run the script through /bin/sh with fake tty
   if [[ $(uname) == "Darwin" ]]; then
     # MacOS
-    SHELL=/bin/sh script -qF /dev/null /bin/sh -c "$cmd"
+    SHELL=/bin/sh script -qF "$logfile" /bin/sh -c "$cmd"
   else
-    SHELL=/bin/sh script -qfc "/bin/sh -c $(printf "%q " "$cmd")" /dev/null
+    SHELL=/bin/sh script -qfc "/bin/sh -c $(printf "%q " "$cmd")" "$logfile"
   fi
 
   # Ensure that the status code was written to the temporary file or
