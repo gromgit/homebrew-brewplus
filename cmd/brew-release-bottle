@@ -27,7 +27,7 @@ cleanup() {
 err_rename() {
   local status=$?
   [[ -n $tmpdir ]] || return
-  if [[ -n $(\ls $tmpdir/) ]]; then
+  if [[ -n $(\ls "$tmpdir/") ]]; then
     mv "$tmpdir" "$tmpdir".b0rken
     error "Release failed, temp dir moved to ${tmpdir}.b0rken"
   else
@@ -114,7 +114,7 @@ for f in "$@"; do
     # First make sure the tap's up-to-date
     git_in "$repodir" pull
     tmpdir=$(mktemp -d "${HOMEBREW_PREFIX}/tmp/${fname}.XXXXXXXXXX")
-    cd "$tmpdir"
+    cd "$tmpdir" || fatal "Unable to cd to tmpdir '$tmpdir'"
 
     # Bump the version if needed
     if [[ -n $new_version ]]; then
@@ -170,7 +170,7 @@ for f in "$@"; do
         cmd_retry gh release create "$tag" "$rf" -R "$real_ghrepo"
       fi
       # HACK: if it's a versioned formula or sanitized tarball name, we need to edit the upload name manually
-      if [[ $fname == *@* || $rf == *\%* ]]; then
+      if [[ $fname == *@* || $rf == *%* ]]; then
         read -rp "Please edit release tarball in ${root_url/\/download\//\/tag\/}, then hit Return to continue: " </dev/tty
       fi
     done
@@ -188,7 +188,7 @@ for f in "$@"; do
       cmd brew rm "$f"
     fi
 
-    cd - &> /dev/null
+    cd - &> /dev/null || fatal "Unable to return to previoous dir"
     cleanup
   else
     echo "WARNING: $f not in <user>/<tap>/<formula> format, skipping."
