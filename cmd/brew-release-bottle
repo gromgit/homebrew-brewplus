@@ -76,6 +76,7 @@ while true; do
     -nc|--no-cleanup) no_cleanup=1;;
     -ni|--no-install) no_install=1;;
     -V|--bump-version) new_version=$2; shift;;
+    -B|--auto-bump) auto_bump=1;;
     --root-url=*) default_root_url=${1#*=};;
     --root-url) default_root_url=$2; shift;;
     -nv|--no-url-version) url_version="";;
@@ -85,7 +86,21 @@ while true; do
   shift
 done
 
-for f in "$@"; do
+work=()
+if [[ -n $auto_bump ]]; then
+  # We'll need to parse livecheck JSON output if it wasn't specified
+  need_progs jq
+  brew livecheck --json squashfuse-mac | jq -r '.[]|select(.version.outdated)|(.formula, .version.latest)' | readarray -t work
+else
+  # Assume all specified formulae use the same version (potentially null)
+  for f in "$@"; do
+    work+=("$f" "$new_version")
+  done
+fi
+declare -p work
+
+while [[ $# -gt 0 ]]; do
+  f=$1 new_version=$2; shift
 
   # fully-qualify path if needed
   if [[ $f != */* ]]; then
