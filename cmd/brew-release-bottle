@@ -98,6 +98,7 @@ else
   done
 fi
 declare -p work
+set -- "${work[@]}"
 
 while [[ $# -gt 0 ]]; do
   f=$1 new_version=$2; shift
