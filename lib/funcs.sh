@@ -40,9 +40,6 @@ export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS:-/etc/xdg}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
-# Derive some important vars
-cache_root=$(dirname "$(realpath -e "$(brew --cache)")")
-export cache_root
 [[ $(uname -s) == "Darwin" ]] && GNU_PREFIX=g
 
 # fatal: Report fatal error
@@ -239,7 +236,7 @@ formula_path() {
   local fpath
   if [[ -e Aliases/$1 ]]; then
     # Check for alias
-    fpath=$(realpath --relative-base="$repo" -e Aliases/"$1" 2>/dev/null)
+    fpath=$("${GNU_PREFIX}realpath" --relative-base="$repo" -e Aliases/"$1" 2>/dev/null)
   else
     fpath=Formula/${1}.rb
   fi
@@ -468,7 +465,11 @@ for myvar in GITHUB_API_TOKEN GITHUB_PACKAGES_TOKEN GITHUB_PACKAGES_USER GITHUB_
 done
 unset myvar mynewvar
 
-need_progs ${GNU_PREFIX}sed ${GNU_PREFIX}cat git timelimit
+need_progs "${GNU_PREFIX}sed" "${GNU_PREFIX}cat" git timelimit "${GNU_PREFIX}realpath"
+
+# Derive some important vars
+cache_root=$(dirname "$("${GNU_PREFIX}realpath" -e "$(brew --cache)")")
+export cache_root
 
 # Run this script to get the necessary source instructions
 # Ref: https://stackoverflow.com/a/28776166

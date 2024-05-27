@@ -12,7 +12,8 @@
 
 # shellcheck source=../lib/funcs.sh
 . "$(dirname "$0")/../lib/funcs.sh"
-need_progs brew git lsof timelimit
+realpath=${GNU_PREFIX}realpath
+need_progs brew git lsof timelimit "$realpath"
 
 shopt -s lastpipe
 
@@ -56,7 +57,7 @@ formula_path() {
   local fpath
   if [[ -e Aliases/$1 ]]; then
     # Check for alias
-    fpath=$(realpath --relative-base="$repo" -e Aliases/"$1" 2>/dev/null)
+    fpath=$("$realpath" --relative-base="$repo" -e Aliases/"$1" 2>/dev/null)
   else
     fpath=Formula/${1}.rb
   fi
@@ -216,7 +217,7 @@ for f in "$@"; do
   grep -E "^${f%@*}"$'\t' "${cfgdir}/timeout" | read -r _ timeout
   f=${f%%/}
   [[ -e Aliases/$f ]] && {
-    f2=$(basename "$(realpath "Aliases/$f")" .rb)
+    f2=$(basename "$("$realpath" "Aliases/$f")" .rb)
     info "Alias($f) -> $f2"
     f=f2
   }
