@@ -82,7 +82,6 @@ need_progs() {
   done
   if [[ ${#missing[@]} -gt 0 ]]; then
     fatal "Commands missing: ${missing[*]}"
-    exit 1
   fi
 }
 
@@ -206,7 +205,7 @@ if [[ -z $HOMEBREW_LOGS ]]; then
   case "$(uname -s)" in
     Darwin) dir=$HOME/Library/Logs/Homebrew;;
     Linux) for dir in $XDG_CACHE_HOME/Homebrew/Logs $HOME/.cache/Homebrew/Logs; do [[ -d $dir ]] && break; done;;
-    *) fatal "Unable to support '$os'";;
+    *) fatal "Unable to support '$my_os'";;
   esac
   if [[ -d $dir ]]; then
     export HOMEBREW_LOGS=$dir
@@ -276,7 +275,7 @@ can_build() {
   case "$(uname -s)" in
     Darwin)
 
-      local os_dep=$(jq '.[]|select(.name=="'"$name"'" and .requirements[].name=="linux")' "$metajson")
+      local os_dep; os_dep=$(jq '.[]|select(.name=="'"$name"'" and .requirements[].name=="linux")' "$metajson")
       if [[ -n $os_dep ]]; then
         warn "Skipping $name because depends_on :linux"
         b_cache+=(["$name"]=1); return 1
@@ -296,7 +295,7 @@ can_build() {
 
     ;;
     Linux)
-      local os_dep=$(jq 'map(select(.name=="'"$name"'"))|.[].requirements[]|select(.name=="macos" and .version==null)' "$metajson")
+      local os_dep; os_dep=$(jq 'map(select(.name=="'"$name"'"))|.[].requirements[]|select(.name=="macos" and .version==null)' "$metajson")
       if [[ -n $os_dep ]]; then
         warn "Skipping $name because depends_on :macos"
         b_cache+=(["$name"]=1); return 1
@@ -343,7 +342,7 @@ list_rebottling() {
 
 # remove_bottle_filter: Drop bottle block from stdin
 remove_bottle_filter() {
-  ${GNU_PREFIX}sed '/^  bottle do/,/^  end/d' | ${GNU_PREFIX}cat -s
+  "${GNU_PREFIX}sed" '/^  bottle do/,/^  end/d' | "${GNU_PREFIX}cat" -s
 }
 
 # remove_bottle_block: Remove bottle block from formulae
