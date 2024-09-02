@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Load development standard shell library
+# shellcheck source=../lib/funcs.sh
+. "$(dirname "$0")/../lib/funcs.sh"
+repo=${REPO:-$(brew --repo homebrew/core)}
+refrepo=${REFREPO:-$(brew --repo homebrew/core-ref)}
+shopt -s lastpipe
+
+# reffile <formula>...
+reffile() {
+  local f f2 d d2 fp; for f in "$@"; do
+    if [[ $f =~ ^([^/]*/[^/]*)/([^/]*)$ ]]; then
+      d=$(brew --repo ${BASH_REMATCH[1]})
+      f2=${BASH_REMATCH[2]}
+    else
+      d=${refrepo}
+      f2=$f
+    fi
+    if [[ $f2 = lib* ]]; then
+      d2=lib
+    else
+      d2=${f2:0:1}
+    fi
+    fp=${d}/Formula/${d2}/${f2}.rb
+    if [[ -s $fp ]]; then
+      echo "$fp"
+    else
+      fatal "Can't find formula '$f'"
+    fi
+  done
+}
+
+files=()
+for f in "$@"; do
+  fp=$(reffile $f) || continue
+  files+=("$fp")
+  brew deps --include-build --include-tes "$f" | while read -r f2; do
+    fp=$(reffile "$f2") && files+=("$fp")
+  done
+done
+for fp in "${files[@]}"; do
+  fp2=${fp/homebrew-core-ref/homebrew-core}
+  mkdir -p "${fp2%/*}" && remove_bottle_filter < "$fp" > "$fp2" && info "Lifted $(basename "$fp2" .rb)"
+done
