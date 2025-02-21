@@ -121,6 +121,9 @@ deurlify() {
 }
 
 declare -A darwin_versions=(
+  [sequoia]=150000
+  [sonoma]=140000
+  [ventura]=130000
   [monterey]=120000
   [big_sur]=110000
   [catalina]=101500
@@ -135,7 +138,10 @@ declare -A darwin_versions=(
   [snow_leopard]=100600
 )
 # Ref: https://xcodereleases.com/
+# NOTE: Do NOT add entries until Apple caps Xcode versions for a specific OS version
 declare -A max_xcode_versions=(
+  [ventura]=150299
+  [monterey]=140299
   [big_sur]=130299
   [catalina]=120499
   [mojave]=110399
@@ -176,7 +182,10 @@ max_xcode_ver() {
 os_name() {
   case "$(uname -s)" in
     Darwin)
-      case "$(sw_vers -productVersion)" in
+      local v; v=$(sw_vers -productVersion)
+      case "$v" in
+        15.*) echo "sequoia";;
+        14.*) echo "sonoma";;
         13.*) echo "ventura";;
         12.*) echo "monterey";;
         11.*) echo "big_sur";;
@@ -185,7 +194,13 @@ os_name() {
         10.13.*) echo "high_sierra";;
         10.12.*) echo "sierra";;
         10.11.*) echo "el_capitan";;
-        *) fatal "Your macOS is too old to support Homebrew"
+        *)
+          if [[ ${v%%.*} -gt 15 ]]; then
+            warn "Your macOS ($v) may not be supported by Homebrew yet"
+          else
+            fatal "Your macOS ($v) is too old to support Homebrew"
+          fi
+        ;;
       esac
     ;;
     Linux)
