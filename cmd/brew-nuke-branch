@@ -16,7 +16,7 @@ fi
 currbranch=$(git branch --show-current)
 if [[ $# -eq 0 ]]; then
   need_progs gum
-  readarray -t branches < <(git branch --color=never | grep -Ewv 'master|stable' | tr -d '* ')
+  readarray -t branches < <(git branch --color=never | grep -Ewv 'master|main|stable' | tr -d '* ')
   readarray -t args < <(gum choose --selected="*" --no-limit "${branches[@]}")
   set -- "${args[@]}"
 fi
@@ -26,7 +26,8 @@ if [[ $# -gt 0 ]]; then
     [[ $b == "$currbranch" ]] && git checkout "${mainbranch}"
     # Check for remote branch
     info "$b"
-    [[ -n "$(git ls-remote "${HOMEBREW_GITHUB_UPSTREAM}" "$b")" ]] && cmd git push -d "${HOMEBREW_GITHUB_UPSTREAM}" "$b"
+    up_remote=$(git ls-remote "${HOMEBREW_GITHUB_UPSTREAM}" "$b" 2>/dev/null)
+    cmd git push -d "${up_remote:-origin}" "$b"
     [[ -n "$(git branch --list "$b")" ]] && cmd git branch -D "$b"
   done
   git branch -a
