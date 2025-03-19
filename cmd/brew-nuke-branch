@@ -17,7 +17,7 @@ currbranch=$(git branch --show-current)
 if [[ $# -eq 0 ]]; then
   need_progs gum
   readarray -t branches < <(git branch --color=never | grep -Ewv 'master|main|stable' | tr -d '* ')
-  readarray -t args < <(gum choose --selected="*" --no-limit "${branches[@]}")
+  readarray -t args < <(gum choose --selected="*" --no-limit "${branches[@]}" | grep .)
   set -- "${args[@]}"
 fi
 if [[ $# -gt 0 ]]; then
