@@ -26,8 +26,9 @@ if [[ $# -gt 0 ]]; then
     [[ $b == "$currbranch" ]] && git checkout "${mainbranch}"
     # Check for remote branch
     info "$b"
-    up_remote=$(git ls-remote "${HOMEBREW_GITHUB_UPSTREAM}" "$b" 2>/dev/null)
-    cmd git push -d "${up_remote:-origin}" "$b"
+    if git ls-remote --exit-code "${HOMEBREW_GITHUB_UPSTREAM}" "$b" >&/dev/null; then
+      cmd git push -d "${HOMEBREW_GITHUB_UPSTREAM}" "$b"
+    fi
     [[ -n "$(git branch --list "$b")" ]] && cmd git branch -D "$b"
   done
   git branch -a
